@@ -3,6 +3,10 @@ const chatContainer=document.querySelector('#chat-container');
 const askBtn=document.querySelector('#ask');
 input?.addEventListener("keyup", handleEnter);
 askBtn?.addEventListener("click", handleAsk);
+
+const loading = document.createElement('div');
+loading.className='my-6 animate-pulse'
+loading.textContent='Thinking...'
 async function generate(text) {
   // 1.append msg to Ui
   // 2. send it to LLM
@@ -12,11 +16,15 @@ async function generate(text) {
   msg.textContent=text;
   chatContainer?.appendChild(msg);
   input.value='';
+  chatContainer?.appendChild(loading);
   const assistantMessage=await callServer(text);
   const assistantMsgElem=document.createElement('div');
   assistantMsgElem.className=`max-w-fit`;
   assistantMsgElem.textContent=assistantMessage;
   chatContainer?.appendChild(assistantMsgElem);
+  loading.remove();
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+
 }
 
 async function callServer(inputText){

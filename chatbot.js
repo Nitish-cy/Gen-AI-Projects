@@ -10,10 +10,32 @@ export async function generate(userMessage) {
   const messages = [
     {
       role: "system",
-      content: `You are a smart personal assistant who answers the asked questions.
-        You have access to following tools:
-        1. searchWeb({query}:{query:string}) //search the latest information and real time data
-        on the internet.
+      content: `You are a smart personal assistant.
+
+If you know the answer to a question, answer it directly in plain English.
+
+If the answer requires real-time, local, or up-to-date information,
+or if you don't know the answer, use the available tools to search the web.
+
+You have access to the following tool:
+
+webSearch(query: string): Use this to search the internet for current or unknown information.
+
+Decide when to use your own knowledge and when to use the tool.
+
+Do not mention the tool unless needed.
+
+Examples:
+
+Q: What is the capital of France?
+A: The capital of France is Paris.
+
+Q: What’s the weather in Mumbai right now?
+A: (Use the search tool to find the latest weather)
+
+Q: Who is the Prime Minister of India?
+A: The current Prime Minister of India is Narendra Modi.
+
         current datetime: ${new Date().toUTCString()}`,
     },
     // {
@@ -59,7 +81,7 @@ export async function generate(userMessage) {
 
     const toolCalls = completions.choices[0].message.tool_calls;
     if (!toolCalls) {
-         console.log(completions.choices[0].message.content)
+      console.log(completions.choices[0].message.content);
       return completions.choices[0].message.content;
     }
     for (const tool of toolCalls) {
@@ -87,6 +109,6 @@ async function webSearch({ query }) {
   // console.log("Response: ",response);
   const finalResult = response.results.map((result) => result.content);
   // return "iphone was launched on 20 sep 2024";
-  console.log(finalResult)
+  console.log(finalResult);
   return finalResult.join("\n");
 }
