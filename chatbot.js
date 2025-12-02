@@ -1,13 +1,15 @@
 import Groq from "groq-sdk";
 import { tavily } from "@tavily/core";
+import NodeCache from "node-cache";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 console.log(process.env.GROQ_API_KEY);
 const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
 console.log(process.env.TAVILY_API_KEY);
+const cache = new NodeCache({ stdTTL: 60 * 60 * 24 }); //24 hrs
 
-export async function generate(userMessage) {
-  const messages = [
+export async function generate(userMessage, threadId) {
+  const baseMessages = [
     {
       role: "system",
       content: `You are a smart personal assistant.
@@ -43,13 +45,20 @@ A: The current Prime Minister of India is Narendra Modi.
     //   content: "when was iphone 16 launched?",
     // },
   ];
+  const messages = cache.get(threadId) ?? baseMessages;
   //for user input
   messages.push({
     role: "user",
     content: userMessage,
   });
   //for llm tool calling
+  const MAX_RETRIES = 10;
+  let count = 0;
   while (true) {
+    if (count > MAX_RETRIES) {
+      return "I could not find result, please try again";
+    }
+    count++;
     const completions = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       temperature: 0,
@@ -82,6 +91,8 @@ A: The current Prime Minister of India is Narendra Modi.
     const toolCalls = completions.choices[0].message.tool_calls;
     if (!toolCalls) {
       console.log(completions.choices[0].message.content);
+      cache.set(threadId, messages);
+      console.log(cache);
       return completions.choices[0].message.content;
     }
     for (const tool of toolCalls) {

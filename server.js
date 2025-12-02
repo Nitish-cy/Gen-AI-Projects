@@ -18,14 +18,16 @@ app.get("/", (req, res) => {
 // Example route for AI processing
 app.post("/chat", async (req, res) => {
   try {
-    const { message } = req.body;
-
+    const { message, threadId } = req.body;
+    if (!message || !threadId) {
+      return res.status(400).json({ message: "All fields are required!" });
+    }
     // ---- Call LLM or tools here ----
-    const result=await generate(message);
-     console.log("result")
-    console.log(result)
+    const result = await generate(message, threadId);
+    console.log("result");
+    console.log(result);
     res.json({
-    result
+      result,
     });
   } catch (error) {
     console.error(error);
